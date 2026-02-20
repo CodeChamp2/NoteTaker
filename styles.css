@@ -126,6 +126,7 @@ body {
   border: 1px solid transparent;
   transition: background 0.15s;
   will-change: transform;
+  touch-action: manipulation;
 }
 .note-item-content:hover { background: var(--card-bg); }
 #note-list li.active .note-item-content {
@@ -337,7 +338,7 @@ body {
   /* Default: sidebar visible, editor off-screen to the right */
   /* touch-action: pan-y prevents the browser from interpreting horizontal
      drags on the sidebar as page navigation — JS swipe handlers still fire */
-  .sidebar  { transform: translateX(0); touch-action: pan-y; }
+  .sidebar  { transform: translateX(0); touch-action: manipulation; }
   .editor   { transform: translateX(100%); position: absolute; inset: 0; background: var(--bg); }
 
   /* When a note is open, slide sidebar left and editor in */
