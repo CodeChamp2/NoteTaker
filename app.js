@@ -110,54 +110,11 @@ function drawStars(canvas) {
   const count = Math.round((W * H) / 1400);
 
   for (let i = 0; i < count; i++) {
-    const x = Math.random() * W;
-    const y = Math.random() * H;
-    const rand = Math.random();
-
-    // Natural size distribution: mostly tiny, few prominent
-    let radius;
-    if      (rand < 0.70) radius = Math.random() * 0.45 + 0.15; // tiny (70%)
-    else if (rand < 0.92) radius = Math.random() * 0.65 + 0.55; // medium (22%)
-    else                  radius = Math.random() * 0.85 + 1.15; // bright (8%)
-
-    const brightness = Math.random() * 0.5 + 0.45;
-
-    // Subtle color temperature variation (like real stars)
-    let sr = 255, sg = 255, sb = 255;
-    const hue = Math.random();
-    if      (hue < 0.28) { sr = 200; sg = 220; sb = 255; } // blue-white (hot)
-    else if (hue < 0.46) { sr = 255; sg = 245; sb = 210; } // warm yellow-white
-
-    // Wide glow halo for all but the tiniest stars
-    if (radius > 0.5) {
-      const haloR = radius * 6;
-      const halo = ctx.createRadialGradient(x, y, 0, x, y, haloR);
-      halo.addColorStop(0,   `rgba(${sr},${sg},${sb},${brightness * 0.45})`);
-      halo.addColorStop(0.35,`rgba(${sr},${sg},${sb},${brightness * 0.12})`);
-      halo.addColorStop(1,   `rgba(${sr},${sg},${sb},0)`);
-      ctx.beginPath();
-      ctx.arc(x, y, haloR, 0, Math.PI * 2);
-      ctx.fillStyle = halo;
-      ctx.fill();
-    }
-
-    // Extra diffuse glow for the bright stars
-    if (radius > 1.1) {
-      const bigR = radius * 14;
-      const bigGlow = ctx.createRadialGradient(x, y, 0, x, y, bigR);
-      bigGlow.addColorStop(0, `rgba(${sr},${sg},${sb},${brightness * 0.18})`);
-      bigGlow.addColorStop(1, `rgba(${sr},${sg},${sb},0)`);
-      ctx.beginPath();
-      ctx.arc(x, y, bigR, 0, Math.PI * 2);
-      ctx.fillStyle = bigGlow;
-      ctx.fill();
-    }
-
-    // Sharp star core
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${sr},${sg},${sb},${brightness})`;
-    ctx.fill();
+    const x = Math.floor(Math.random() * W);
+    const y = Math.floor(Math.random() * H);
+    const alpha = Math.random() * 0.5 + 0.45;
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fillRect(x, y, 1, 1);
   }
 }
 
