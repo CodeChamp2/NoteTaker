@@ -11,8 +11,10 @@ const searchInput = document.getElementById('search');
 const noteTitle   = document.getElementById('note-title');
 const noteBody    = document.getElementById('note-body');
 const deleteBtn   = document.getElementById('delete-btn');
+const backBtn     = document.getElementById('back-btn');
 const lastSaved   = document.getElementById('last-saved');
 const emptyState  = document.getElementById('empty-state');
+const appEl       = document.querySelector('.app');
 
 // ── Persistence ──
 function load() {
@@ -93,6 +95,7 @@ function escapeHtml(str) {
 // ── Actions ──
 function selectNote(id) {
   activeId = id;
+  appEl.classList.add('show-editor');
   renderList();
   renderEditor();
   noteBody.focus();
@@ -112,6 +115,7 @@ function deleteNote() {
   if (!confirmed) return;
   notes = notes.filter(n => n.id !== activeId);
   activeId = notes.length ? notes[0].id : null;
+  appEl.classList.remove('show-editor');
   save();
   renderList();
   renderEditor();
@@ -132,6 +136,9 @@ function scheduleAutosave() {
 }
 
 // ── Events ──
+backBtn.addEventListener('click', () => {
+  appEl.classList.remove('show-editor');
+});
 newNoteBtn.addEventListener('click', createNote);
 deleteBtn.addEventListener('click', deleteNote);
 noteTitle.addEventListener('input', scheduleAutosave);
