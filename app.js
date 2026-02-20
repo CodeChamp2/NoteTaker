@@ -18,6 +18,7 @@ const backBtn     = document.getElementById('back-btn');
 const lastSaved   = document.getElementById('last-saved');
 const emptyState  = document.getElementById('empty-state');
 const appEl       = document.querySelector('.app');
+const welcomeEl   = document.getElementById('welcome');
 
 // ── Persistence ──
 function load() {
@@ -49,6 +50,22 @@ function activeNote() {
 
 function escapeHtml(str) {
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Welcome helpers ──
+function showWelcome() {
+  welcomeEl.classList.remove('hidden', 'exit');
+  welcomeEl.classList.add('fade-in');
+  setTimeout(() => welcomeEl.classList.remove('fade-in'), 300);
+}
+
+function hideWelcome(callback) {
+  welcomeEl.classList.add('exit');
+  setTimeout(() => {
+    welcomeEl.classList.add('hidden');
+    welcomeEl.classList.remove('exit');
+    callback?.();
+  }, 420);
 }
 
 // ── Swipe helpers ──
@@ -255,6 +272,7 @@ function deleteNoteById(id, li) {
     revealedItem = null;
     save();
     renderList();
+    if (notes.length === 0) showWelcome();
   }, 420);
 }
 
@@ -268,6 +286,7 @@ function deleteNote() {
   save();
   renderList();
   renderEditor();
+  if (notes.length === 0) showWelcome();
 }
 
 function scheduleAutosave() {
@@ -285,6 +304,10 @@ function scheduleAutosave() {
 }
 
 // ── Events ──
+document.getElementById('start-btn').addEventListener('click', () => {
+  hideWelcome(() => createNote());
+});
+
 backBtn.addEventListener('click', () => {
   appEl.classList.remove('show-editor');
 });
@@ -310,6 +333,9 @@ document.addEventListener('keydown', e => {
 
 // ── Init ──
 load();
-if (notes.length) activeId = notes[0].id;
+if (notes.length) {
+  welcomeEl.classList.add('hidden');
+  activeId = notes[0].id;
+}
 renderList();
 renderEditor();

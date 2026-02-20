@@ -258,6 +258,58 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
+/* ── Welcome screen ── */
+#welcome {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 100;
+}
+
+#welcome.hidden { display: none; }
+
+#welcome.exit {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-100%);
+}
+
+@keyframes welcomeFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+#welcome.fade-in { animation: welcomeFadeIn 0.3s ease forwards; }
+
+.welcome-logo {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.welcome-tagline {
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+#start-btn {
+  margin-top: 8px;
+  padding: 14px 40px;
+  border: none;
+  border-radius: 30px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+}
+#start-btn:hover { transform: scale(1.05); opacity: 0.9; }
+
 /* ── Mobile ── */
 @media (max-width: 640px) {
   body { height: 100dvh; }
@@ -302,4 +354,7 @@ body {
 
   /* Slightly larger search bar */
   #search { font-size: 1rem; padding: 10px 12px; }
+
+  /* Welcome exit: slide down on mobile instead of left */
+  #welcome.exit { transform: translateY(100%); }
 }
