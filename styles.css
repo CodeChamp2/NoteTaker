@@ -312,6 +312,9 @@ body {
 
 /* ── Mobile ── */
 @media (max-width: 640px) {
+  /* Prevent horizontal overscroll / rubber-band revealing off-screen panels */
+  html, body { overscroll-behavior-x: none; overflow-x: hidden; }
+
   body { height: 100dvh; }
 
   .app {
@@ -332,7 +335,9 @@ body {
   }
 
   /* Default: sidebar visible, editor off-screen to the right */
-  .sidebar  { transform: translateX(0); }
+  /* touch-action: pan-y prevents the browser from interpreting horizontal
+     drags on the sidebar as page navigation — JS swipe handlers still fire */
+  .sidebar  { transform: translateX(0); touch-action: pan-y; }
   .editor   { transform: translateX(100%); position: absolute; inset: 0; background: var(--bg); }
 
   /* When a note is open, slide sidebar left and editor in */
