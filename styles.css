@@ -27,6 +27,7 @@ body {
 
 /* ── Sidebar ── */
 .sidebar {
+  position: relative; /* contains the absolutely-positioned sky overlay */
   background: var(--sidebar-bg);
   border-right: 1px solid var(--border);
   display: flex;
@@ -34,7 +35,10 @@ body {
   overflow: hidden;
 }
 
+/* Sky overlay and its siblings must sit above it via z-index: 1 */
 .sidebar-header {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -88,6 +92,8 @@ body {
 #new-note-fab { display: none; }
 
 #search {
+  position: relative;
+  z-index: 1;
   margin: 12px;
   padding: 8px 12px;
   border-radius: var(--radius);
@@ -100,6 +106,8 @@ body {
 #search:focus { border-color: var(--accent); }
 
 #note-list {
+  position: relative;
+  z-index: 1;
   list-style: none;
   overflow-y: auto;
   flex: 1;
@@ -335,15 +343,15 @@ body {
 }
 #start-btn:hover { transform: scale(1.05); opacity: 0.9; }
 
-/* ── Sky overlay ── */
+/* ── Sky overlay — sits inside .sidebar below all content (z-index: 0) ── */
 #sky-overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: min(240px, 42vh);
   pointer-events: none;
-  z-index: 5;
+  z-index: 0;
   display: none;
 }
 #stars-canvas {

@@ -174,9 +174,14 @@ function updateOverlay() {
     skyOverlay.style.background =
       'linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 55%, transparent 100%)';
   } else {
+    // Light mode: start with accent colour, blend toward a lighter/more washed-out
+    // version at the bottom so the finish is softer and lower in saturation
     const [rv, gv, bv] = hexToRgb(customPrimary || currentTheme.accent);
+    const lr = Math.min(255, rv + 60);
+    const lg = Math.min(255, gv + 60);
+    const lb = Math.min(255, bv + 60);
     skyOverlay.style.background =
-      `linear-gradient(to bottom, rgba(${rv},${gv},${bv},0.72) 0%, rgba(${rv},${gv},${bv},0.25) 55%, transparent 100%)`;
+      `linear-gradient(to bottom, rgba(${rv},${gv},${bv},0.48) 0%, rgba(${lr},${lg},${lb},0.14) 60%, transparent 100%)`;
   }
 
   if (starsEnabled && isDarkTheme()) {
