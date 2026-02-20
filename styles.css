@@ -83,17 +83,68 @@ body {
 }
 
 #note-list li {
-  padding: 10px 12px;
+  position: relative;
+  overflow: hidden;
   border-radius: var(--radius);
-  cursor: pointer;
   margin-bottom: 4px;
-  transition: background 0.15s;
-  border: 1px solid transparent;
 }
-#note-list li:hover { background: var(--card-bg); }
-#note-list li.active {
+
+/* ── Swipe action buttons (revealed behind content) ── */
+.swipe-actions {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  display: flex;
+  z-index: 0;
+}
+
+.action-btn {
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0 18px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 70px;
+}
+.action-pin   { background: #4a6fa5; }
+.action-delete { background: var(--accent); }
+
+/* ── Slideable content layer ── */
+.note-item-content {
+  position: relative;
+  z-index: 1;
+  background: var(--sidebar-bg);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s;
+  will-change: transform;
+}
+.note-item-content:hover { background: var(--card-bg); }
+#note-list li.active .note-item-content {
   background: var(--card-bg);
   border-color: var(--accent);
+}
+
+.pin-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #4a6fa5;
+  background: rgba(74, 111, 165, 0.18);
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .note-item-title {
@@ -240,7 +291,7 @@ body {
   #back-btn { display: block; }
 
   /* Larger touch targets */
-  #note-list li { padding: 14px 12px; }
+  .note-item-content { padding: 14px 12px; }
   #new-note-btn { width: 38px; height: 38px; font-size: 1.6rem; }
 
   /* Compact editor header */
