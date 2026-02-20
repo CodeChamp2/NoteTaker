@@ -241,10 +241,13 @@ function renderEditor() {
 // ── Actions ──
 function selectNote(id) {
   activeId = id;
-  renderList();
-  renderEditor();               // populate while still off-screen
-  appEl.classList.add('show-editor'); // then start the slide-in
-  if (window.innerWidth > 640) noteBody.focus(); // desktop only — focus mid-animation on mobile causes layout shift
+  renderEditor();               // populate editor while still off-screen
+  appEl.classList.add('show-editor'); // start the slide-in
+  // Delay list re-render until the sidebar has fully slid off-screen (transition is 250ms).
+  // Calling renderList() immediately destroys the mid-animation note item and replaces it
+  // with a fresh one at translateX(0), causing a visible snap-back before the sidebar exits.
+  setTimeout(() => renderList(), 260);
+  if (window.innerWidth > 640) noteBody.focus();
 }
 
 function createNote() {
