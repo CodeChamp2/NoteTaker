@@ -10,6 +10,8 @@ let revealedItem = null; // { li, content }
 // ── DOM refs ──
 const noteList    = document.getElementById('note-list');
 const newNoteBtn  = document.getElementById('new-note-btn');
+const newNoteFab  = document.getElementById('new-note-fab');
+const settingsBtn = document.getElementById('settings-btn');
 const searchInput = document.getElementById('search');
 const noteTitle   = document.getElementById('note-title');
 const noteBody    = document.getElementById('note-body');
@@ -328,6 +330,7 @@ backBtn.addEventListener('click', () => {
   appEl.classList.remove('show-editor');
 });
 newNoteBtn.addEventListener('click', createNote);
+newNoteFab.addEventListener('click', createNote);
 deleteBtn.addEventListener('click', deleteNote);
 noteTitle.addEventListener('input', scheduleAutosave);
 noteBody.addEventListener('input', scheduleAutosave);
