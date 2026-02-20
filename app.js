@@ -123,14 +123,17 @@ function attachSwipeHandlers(li, content, noteId) {
   }, { passive: true });
 
   li.addEventListener('touchend', e => {
-    // Always restore actions visibility (was hidden during left swipe)
-    li.querySelector('.swipe-actions').style.visibility = '';
-    if (!isDragging) return;
+    const actions = li.querySelector('.swipe-actions');
+    if (!isDragging) {
+      actions.style.visibility = '';
+      return;
+    }
     const dx = e.changedTouches[0].clientX - startX;
     const isRevealed = revealedItem?.li === li;
     content.style.transition = 'transform 0.25s ease';
 
     if (swipeDir === 'right') {
+      actions.style.visibility = '';
       if (dx > SWIPE_THRESHOLD) {
         content.style.transform = `translateX(${REVEAL_WIDTH}px)`;
         revealedItem = { li, content };
@@ -141,6 +144,7 @@ function attachSwipeHandlers(li, content, noteId) {
       }
     } else {
       if (isRevealed) {
+        actions.style.visibility = '';
         if (dx < -SWIPE_THRESHOLD) {
           content.style.transform = 'translateX(0)';
           revealedItem = null;
@@ -148,10 +152,12 @@ function attachSwipeHandlers(li, content, noteId) {
           content.style.transform = `translateX(${REVEAL_WIDTH}px)`;
         }
       } else if (dx < -SWIPE_THRESHOLD) {
+        // Opening note — keep actions hidden; renderList will recreate the li
         li._hasSwiped = true;
         content.style.transform = 'translateX(-110%)';
         setTimeout(() => selectNote(noteId), 220);
       } else {
+        actions.style.visibility = '';
         content.style.transform = 'translateX(0)';
       }
     }
