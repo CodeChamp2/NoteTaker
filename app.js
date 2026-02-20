@@ -241,10 +241,10 @@ function renderEditor() {
 // ── Actions ──
 function selectNote(id) {
   activeId = id;
-  appEl.classList.add('show-editor');
   renderList();
-  renderEditor();
-  noteBody.focus();
+  renderEditor();               // populate while still off-screen
+  appEl.classList.add('show-editor'); // then start the slide-in
+  if (window.innerWidth > 640) noteBody.focus(); // desktop only — focus mid-animation on mobile causes layout shift
 }
 
 function createNote() {
