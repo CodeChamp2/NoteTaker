@@ -127,18 +127,18 @@ function updateOverlay() {
 
   skyOverlay.style.display = 'block';
 
+  const [rv, gv, bv] = hexToRgb(customPrimary || currentTheme.accent);
   if (isDarkTheme()) {
+    // Dark mode: accent tint at top fades through dark overlay
     skyOverlay.style.background =
-      'linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 55%, transparent 100%)';
+      `linear-gradient(to bottom, rgba(${rv},${gv},${bv},0.28) 0%, rgba(0,0,0,0.72) 45%, rgba(0,0,0,0.2) 70%, transparent 100%)`;
   } else {
-    // Light mode: start with accent colour, blend toward a lighter/more washed-out
-    // version at the bottom so the finish is softer and lower in saturation
-    const [rv, gv, bv] = hexToRgb(customPrimary || currentTheme.accent);
+    // Light mode: vivid accent at top, blends toward a softer lighter tint
     const lr = Math.min(255, rv + 60);
     const lg = Math.min(255, gv + 60);
     const lb = Math.min(255, bv + 60);
     skyOverlay.style.background =
-      `linear-gradient(to bottom, rgba(${rv},${gv},${bv},0.48) 0%, rgba(${lr},${lg},${lb},0.14) 60%, transparent 100%)`;
+      `linear-gradient(to bottom, rgba(${rv},${gv},${bv},0.68) 0%, rgba(${lr},${lg},${lb},0.22) 60%, transparent 100%)`;
   }
 
   if (starsEnabled && isDarkTheme()) {
@@ -553,12 +553,14 @@ noteList.addEventListener('scroll', closeRevealedActions, { passive: true });
 // Stars parallax — drift at 20% of scroll speed
 noteList.addEventListener('scroll', () => {
   if (!starsEnabled || !gradientEnabled || !isDarkTheme()) return;
+  starsCanvas.getAnimations().forEach(a => a.cancel());
   starsCanvas.style.transform = `translateY(${-noteList.scrollTop * 0.2}px)`;
 }, { passive: true });
 
-// Pull-to-refresh spring effect on stars
+// Pull-to-refresh elastic bounce on stars
 let pullStartY = 0;
 let pullTracking = false;
+let currentPullY = 0;
 
 noteList.addEventListener('touchstart', e => {
   pullTracking = noteList.scrollTop <= 0;
@@ -569,17 +571,26 @@ noteList.addEventListener('touchmove', e => {
   if (!pullTracking || !starsEnabled || !gradientEnabled || !isDarkTheme()) return;
   const dy = e.touches[0].clientY - pullStartY;
   if (dy > 0) {
-    starsCanvas.style.transition = 'none';
-    starsCanvas.style.transform = `translateY(${Math.min(dy * 0.35, 45)}px)`;
+    currentPullY = Math.min(dy * 0.35, 45);
+    starsCanvas.style.transform = `translateY(${currentPullY}px)`;
   }
 }, { passive: true });
 
 function onPullEnd() {
   if (!pullTracking) return;
   pullTracking = false;
-  starsCanvas.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-  starsCanvas.style.transform = 'translateY(0)';
-  setTimeout(() => { starsCanvas.style.transition = ''; }, 600);
+  const fromY = currentPullY;
+  currentPullY = 0;
+  starsCanvas.getAnimations().forEach(a => a.cancel());
+  const anim = starsCanvas.animate([
+    { transform: `translateY(${fromY}px)` },
+    { transform: 'translateY(-14px)', offset: 0.40 },
+    { transform: 'translateY(8px)',   offset: 0.63 },
+    { transform: 'translateY(-4px)',  offset: 0.80 },
+    { transform: 'translateY(2px)',   offset: 0.91 },
+    { transform: 'translateY(0)' }
+  ], { duration: 800, easing: 'ease-out' });
+  anim.onfinish = () => { starsCanvas.style.transform = 'translateY(0)'; };
 }
 noteList.addEventListener('touchend', onPullEnd, { passive: true });
 noteList.addEventListener('touchcancel', onPullEnd, { passive: true });
