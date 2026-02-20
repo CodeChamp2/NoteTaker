@@ -341,7 +341,9 @@ function createNote() {
   notes.unshift(note);
   save();
   selectNote(note.id);
-  noteTitle.focus();
+  // Delay focus on mobile so the keyboard doesn't pop mid-slide animation
+  if (window.innerWidth > 640) noteTitle.focus();
+  else setTimeout(() => noteTitle.focus(), 280);
 }
 
 function pinNote(id) {
