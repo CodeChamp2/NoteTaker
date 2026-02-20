@@ -335,6 +335,27 @@ body {
 }
 #start-btn:hover { transform: scale(1.05); opacity: 0.9; }
 
+/* ── Sky overlay ── */
+#sky-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: min(240px, 42vh);
+  pointer-events: none;
+  z-index: 5;
+  display: none;
+}
+#stars-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  -webkit-mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
+}
+
 /* ── Settings panel ── */
 .settings-panel {
   position: fixed;
@@ -461,6 +482,51 @@ body {
   cursor: pointer;
   padding: 2px 3px;
 }
+
+/* Toggle switches */
+.toggle-rows { display: flex; flex-direction: column; gap: 10px; }
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.toggle-row span { font-size: 0.88rem; color: var(--text); }
+.toggle-row.disabled { opacity: 0.38; pointer-events: none; }
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+.toggle-track::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+}
+.toggle-switch input:checked + .toggle-track { background: var(--accent); }
+.toggle-switch input:checked + .toggle-track::before { transform: translateX(18px); }
 
 /* Desktop: centered modal instead of bottom sheet */
 @media (min-width: 641px) {

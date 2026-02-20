@@ -40,6 +40,10 @@
     <button id="start-btn">Start Writing</button>
   </div>
 
+  <div id="sky-overlay">
+    <canvas id="stars-canvas"></canvas>
+  </div>
+
   <button id="new-note-fab" title="New note">+</button>
 
   <div id="settings-panel" class="settings-panel hidden">
@@ -52,6 +56,25 @@
       <div class="settings-section">
         <div class="settings-label">Theme</div>
         <div class="theme-grid" id="theme-grid"></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">Effects</div>
+        <div class="toggle-rows">
+          <div class="toggle-row">
+            <span>Sky gradient</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-gradient" />
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="toggle-row" id="stars-toggle-row">
+            <span>Stars</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-stars" />
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
       </div>
       <div class="settings-section">
         <div class="settings-label">Custom Colors</div>

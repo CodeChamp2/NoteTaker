@@ -11,9 +11,11 @@ const THEMES = [
   { id: 'arctic',   name: 'Arctic',   bg: '#f0f4f8', sidebarBg: '#e8edf2', cardBg: '#dde4ed', accent: '#3b82f6', text: '#1a2332', muted: '#64748b', border: '#c8d5e8' },
 ];
 
-let currentTheme   = THEMES[0];
-let customPrimary  = null; // overrides --accent
+let currentTheme    = THEMES[0];
+let customPrimary   = null; // overrides --accent
 let customSecondary = null; // overrides --bg
+let gradientEnabled = false;
+let starsEnabled    = false;
 
 let notes = [];
 let activeId = null;
@@ -29,8 +31,13 @@ const settingsPanel  = document.getElementById('settings-panel');
 const settingsSheet  = settingsPanel.querySelector('.settings-sheet');
 const settingsCloseBtn = document.getElementById('settings-close-btn');
 const themeGrid      = document.getElementById('theme-grid');
-const colorPrimary   = document.getElementById('color-primary');
-const colorSecondary = document.getElementById('color-secondary');
+const colorPrimary    = document.getElementById('color-primary');
+const colorSecondary  = document.getElementById('color-secondary');
+const skyOverlay      = document.getElementById('sky-overlay');
+const starsCanvas     = document.getElementById('stars-canvas');
+const toggleGradient  = document.getElementById('toggle-gradient');
+const toggleStars     = document.getElementById('toggle-stars');
+const starsToggleRow  = document.getElementById('stars-toggle-row');
 const searchInput = document.getElementById('search');
 const noteTitle   = document.getElementById('note-title');
 const noteBody    = document.getElementById('note-body');
@@ -56,14 +63,17 @@ function loadSettings() {
   try {
     const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
     currentTheme    = THEMES.find(t => t.id === s.themeId) || THEMES[0];
-    customPrimary   = s.customPrimary  || null;
+    customPrimary   = s.customPrimary   || null;
     customSecondary = s.customSecondary || null;
+    gradientEnabled = s.gradientEnabled ?? false;
+    starsEnabled    = s.starsEnabled    ?? false;
   } catch { currentTheme = THEMES[0]; }
 }
 
 function saveSettings() {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({
     themeId: currentTheme.id, customPrimary, customSecondary,
+    gradientEnabled, starsEnabled,
   }));
 }
 
@@ -76,6 +86,107 @@ function applyTheme() {
   r.style.setProperty('--text',       currentTheme.text);
   r.style.setProperty('--muted',      currentTheme.muted);
   r.style.setProperty('--border',     currentTheme.border);
+  updateOverlay();
+}
+
+// ── Sky overlay + stars ──
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const n = parseInt(hex, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function isDarkTheme() {
+  const [r, g, b] = hexToRgb(customSecondary || currentTheme.bg);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+}
+
+function drawStars(canvas) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const count = Math.round((W * H) / 1400);
+
+  for (let i = 0; i < count; i++) {
+    const x = Math.random() * W;
+    const y = Math.random() * H;
+    const rand = Math.random();
+
+    // Natural size distribution: mostly tiny, few prominent
+    let radius;
+    if      (rand < 0.70) radius = Math.random() * 0.45 + 0.15; // tiny (70%)
+    else if (rand < 0.92) radius = Math.random() * 0.65 + 0.55; // medium (22%)
+    else                  radius = Math.random() * 0.85 + 1.15; // bright (8%)
+
+    const brightness = Math.random() * 0.5 + 0.45;
+
+    // Subtle color temperature variation (like real stars)
+    let sr = 255, sg = 255, sb = 255;
+    const hue = Math.random();
+    if      (hue < 0.28) { sr = 200; sg = 220; sb = 255; } // blue-white (hot)
+    else if (hue < 0.46) { sr = 255; sg = 245; sb = 210; } // warm yellow-white
+
+    // Wide glow halo for all but the tiniest stars
+    if (radius > 0.5) {
+      const haloR = radius * 6;
+      const halo = ctx.createRadialGradient(x, y, 0, x, y, haloR);
+      halo.addColorStop(0,   `rgba(${sr},${sg},${sb},${brightness * 0.45})`);
+      halo.addColorStop(0.35,`rgba(${sr},${sg},${sb},${brightness * 0.12})`);
+      halo.addColorStop(1,   `rgba(${sr},${sg},${sb},0)`);
+      ctx.beginPath();
+      ctx.arc(x, y, haloR, 0, Math.PI * 2);
+      ctx.fillStyle = halo;
+      ctx.fill();
+    }
+
+    // Extra diffuse glow for the bright stars
+    if (radius > 1.1) {
+      const bigR = radius * 14;
+      const bigGlow = ctx.createRadialGradient(x, y, 0, x, y, bigR);
+      bigGlow.addColorStop(0, `rgba(${sr},${sg},${sb},${brightness * 0.18})`);
+      bigGlow.addColorStop(1, `rgba(${sr},${sg},${sb},0)`);
+      ctx.beginPath();
+      ctx.arc(x, y, bigR, 0, Math.PI * 2);
+      ctx.fillStyle = bigGlow;
+      ctx.fill();
+    }
+
+    // Sharp star core
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${sr},${sg},${sb},${brightness})`;
+    ctx.fill();
+  }
+}
+
+function updateOverlay() {
+  if (!gradientEnabled) {
+    skyOverlay.style.display = 'none';
+    starsCanvas.style.display = 'none';
+    return;
+  }
+
+  skyOverlay.style.display = 'block';
+
+  if (isDarkTheme()) {
+    skyOverlay.style.background =
+      'linear-gradient(to bottom, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 55%, transparent 100%)';
+  } else {
+    const [rv, gv, bv] = hexToRgb(customPrimary || currentTheme.accent);
+    skyOverlay.style.background =
+      `linear-gradient(to bottom, rgba(${rv},${gv},${bv},0.72) 0%, rgba(${rv},${gv},${bv},0.25) 55%, transparent 100%)`;
+  }
+
+  if (starsEnabled && isDarkTheme()) {
+    starsCanvas.style.display = 'block';
+    starsCanvas.width  = skyOverlay.offsetWidth  || window.innerWidth;
+    starsCanvas.height = skyOverlay.offsetHeight || 240;
+    drawStars(starsCanvas);
+  } else {
+    starsCanvas.style.display = 'none';
+  }
 }
 
 // ── Settings panel ──
@@ -95,19 +206,27 @@ function renderThemeSwatches() {
       currentTheme    = theme;
       customPrimary   = null;
       customSecondary = null;
-      applyTheme();
+      applyTheme(); // also calls updateOverlay()
       saveSettings();
       renderThemeSwatches();
       colorPrimary.value   = theme.accent;
       colorSecondary.value = theme.bg;
+      syncStarsToggle();
     });
     themeGrid.appendChild(btn);
   });
 }
 
+function syncStarsToggle() {
+  starsToggleRow.classList.toggle('disabled', !isDarkTheme());
+}
+
 function openSettings() {
-  colorPrimary.value   = customPrimary   || currentTheme.accent;
-  colorSecondary.value = customSecondary || currentTheme.bg;
+  colorPrimary.value    = customPrimary   || currentTheme.accent;
+  colorSecondary.value  = customSecondary || currentTheme.bg;
+  toggleGradient.checked = gradientEnabled;
+  toggleStars.checked    = starsEnabled;
+  syncStarsToggle();
   renderThemeSwatches();
   settingsPanel.classList.remove('hidden');
 }
@@ -426,12 +545,34 @@ settingsPanel.addEventListener('click', e => { if (e.target === settingsPanel) c
 colorPrimary.addEventListener('input', () => {
   customPrimary = colorPrimary.value;
   document.documentElement.style.setProperty('--accent', customPrimary);
+  updateOverlay(); // light-mode gradient uses accent
   saveSettings();
 });
 colorSecondary.addEventListener('input', () => {
   customSecondary = colorSecondary.value;
   document.documentElement.style.setProperty('--bg', customSecondary);
+  updateOverlay(); // dark/light detection uses bg
+  syncStarsToggle();
   saveSettings();
+});
+
+toggleGradient.addEventListener('change', () => {
+  gradientEnabled = toggleGradient.checked;
+  updateOverlay();
+  saveSettings();
+});
+toggleStars.addEventListener('change', () => {
+  starsEnabled = toggleStars.checked;
+  updateOverlay();
+  saveSettings();
+});
+
+window.addEventListener('resize', () => {
+  if (gradientEnabled && starsEnabled && isDarkTheme()) {
+    starsCanvas.width  = skyOverlay.offsetWidth;
+    starsCanvas.height = skyOverlay.offsetHeight;
+    drawStars(starsCanvas);
+  }
 });
 noteTitle.addEventListener('input', scheduleAutosave);
 noteBody.addEventListener('input', scheduleAutosave);
