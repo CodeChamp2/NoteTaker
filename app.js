@@ -99,6 +99,11 @@ function attachSwipeHandlers(li, content, noteId) {
       if (Math.abs(dy) > Math.abs(dx)) return; // vertical scroll — ignore
       isDragging = true;
       swipeDir = dx > 0 ? 'right' : 'left';
+      // Hide actions immediately when swiping left so they don't
+      // peek out as the content slides off-screen
+      if (swipeDir === 'left') {
+        li.querySelector('.swipe-actions').style.visibility = 'hidden';
+      }
     }
 
     const isRevealed = revealedItem?.li === li;
@@ -118,6 +123,8 @@ function attachSwipeHandlers(li, content, noteId) {
   }, { passive: true });
 
   li.addEventListener('touchend', e => {
+    // Always restore actions visibility (was hidden during left swipe)
+    li.querySelector('.swipe-actions').style.visibility = '';
     if (!isDragging) return;
     const dx = e.changedTouches[0].clientX - startX;
     const isRevealed = revealedItem?.li === li;
