@@ -572,12 +572,19 @@ toggleStars.addEventListener('change', () => {
   saveSettings();
 });
 
+let resizeTimer;
 window.addEventListener('resize', () => {
-  if (gradientEnabled && starsEnabled && isDarkTheme()) {
-    starsCanvas.width  = skyOverlay.offsetWidth;
-    starsCanvas.height = skyOverlay.offsetHeight;
-    drawStars(starsCanvas);
-  }
+  if (!gradientEnabled || !starsEnabled || !isDarkTheme()) return;
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const newW = skyOverlay.offsetWidth;
+    const newH = skyOverlay.offsetHeight;
+    if (newW !== starsCanvas.width || newH !== starsCanvas.height) {
+      starsCanvas.width  = newW;
+      starsCanvas.height = newH;
+      drawStars(starsCanvas);
+    }
+  }, 200);
 });
 noteTitle.addEventListener('input', scheduleAutosave);
 noteBody.addEventListener('input', scheduleAutosave);
