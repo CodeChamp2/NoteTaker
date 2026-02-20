@@ -41,6 +41,34 @@
   </div>
 
   <button id="new-note-fab" title="New note">+</button>
+
+  <div id="settings-panel" class="settings-panel hidden">
+    <div class="settings-sheet">
+      <div class="settings-drag-handle"></div>
+      <div class="settings-header">
+        <span class="settings-title">Settings</span>
+        <button id="settings-close-btn" class="settings-close">✕</button>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">Theme</div>
+        <div class="theme-grid" id="theme-grid"></div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-label">Custom Colors</div>
+        <div class="color-rows">
+          <div class="color-row">
+            <span>Primary</span>
+            <input type="color" id="color-primary" />
+          </div>
+          <div class="color-row">
+            <span>Secondary</span>
+            <input type="color" id="color-secondary" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>

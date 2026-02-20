@@ -1,6 +1,19 @@
-const STORAGE_KEY = 'notetaker_notes';
-const REVEAL_WIDTH = 140;
+const STORAGE_KEY  = 'notetaker_notes';
+const SETTINGS_KEY = 'notetaker_settings';
+const REVEAL_WIDTH  = 140;
 const SWIPE_THRESHOLD = 55;
+
+const THEMES = [
+  { id: 'midnight', name: 'Midnight', bg: '#1a1a2e', sidebarBg: '#16213e', cardBg: '#0f3460', accent: '#e94560', text: '#e0e0e0', muted: '#888888', border: '#2a2a4a' },
+  { id: 'forest',   name: 'Forest',   bg: '#0d1f1a', sidebarBg: '#0a1a15', cardBg: '#0f2d20', accent: '#2ecc71', text: '#d8f0e0', muted: '#7a9a80', border: '#1a3a28' },
+  { id: 'dusk',     name: 'Dusk',     bg: '#1a0a2e', sidebarBg: '#160a28', cardBg: '#2a0a4a', accent: '#a855f7', text: '#e8d8f0', muted: '#8a78a0', border: '#2a1a40' },
+  { id: 'ember',    name: 'Ember',    bg: '#1a1208', sidebarBg: '#14100a', cardBg: '#2a1e0a', accent: '#f97316', text: '#f0e8d8', muted: '#a09078', border: '#3a2a10' },
+  { id: 'arctic',   name: 'Arctic',   bg: '#f0f4f8', sidebarBg: '#e8edf2', cardBg: '#dde4ed', accent: '#3b82f6', text: '#1a2332', muted: '#64748b', border: '#c8d5e8' },
+];
+
+let currentTheme   = THEMES[0];
+let customPrimary  = null; // overrides --accent
+let customSecondary = null; // overrides --bg
 
 let notes = [];
 let activeId = null;
@@ -8,10 +21,16 @@ let saveTimer = null;
 let revealedItem = null; // { li, content }
 
 // ── DOM refs ──
-const noteList    = document.getElementById('note-list');
-const newNoteBtn  = document.getElementById('new-note-btn');
-const newNoteFab  = document.getElementById('new-note-fab');
-const settingsBtn = document.getElementById('settings-btn');
+const noteList       = document.getElementById('note-list');
+const newNoteBtn     = document.getElementById('new-note-btn');
+const newNoteFab     = document.getElementById('new-note-fab');
+const settingsBtn    = document.getElementById('settings-btn');
+const settingsPanel  = document.getElementById('settings-panel');
+const settingsSheet  = settingsPanel.querySelector('.settings-sheet');
+const settingsCloseBtn = document.getElementById('settings-close-btn');
+const themeGrid      = document.getElementById('theme-grid');
+const colorPrimary   = document.getElementById('color-primary');
+const colorSecondary = document.getElementById('color-secondary');
 const searchInput = document.getElementById('search');
 const noteTitle   = document.getElementById('note-title');
 const noteBody    = document.getElementById('note-body');
@@ -30,6 +49,71 @@ function load() {
 
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
+
+// ── Settings persistence ──
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+    currentTheme    = THEMES.find(t => t.id === s.themeId) || THEMES[0];
+    customPrimary   = s.customPrimary  || null;
+    customSecondary = s.customSecondary || null;
+  } catch { currentTheme = THEMES[0]; }
+}
+
+function saveSettings() {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+    themeId: currentTheme.id, customPrimary, customSecondary,
+  }));
+}
+
+function applyTheme() {
+  const r = document.documentElement;
+  r.style.setProperty('--bg',         customSecondary || currentTheme.bg);
+  r.style.setProperty('--sidebar-bg', currentTheme.sidebarBg);
+  r.style.setProperty('--card-bg',    currentTheme.cardBg);
+  r.style.setProperty('--accent',     customPrimary   || currentTheme.accent);
+  r.style.setProperty('--text',       currentTheme.text);
+  r.style.setProperty('--muted',      currentTheme.muted);
+  r.style.setProperty('--border',     currentTheme.border);
+}
+
+// ── Settings panel ──
+function renderThemeSwatches() {
+  themeGrid.innerHTML = '';
+  THEMES.forEach(theme => {
+    const btn = document.createElement('button');
+    btn.className = 'theme-swatch' + (theme.id === currentTheme.id ? ' active' : '');
+    btn.title = theme.name;
+    btn.innerHTML = `
+      <div class="swatch-preview">
+        <div style="position:absolute;inset:0;background:${theme.bg}"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:10px;background:${theme.accent}"></div>
+      </div>
+      <span class="swatch-name">${theme.name}</span>`;
+    btn.addEventListener('click', () => {
+      currentTheme    = theme;
+      customPrimary   = null;
+      customSecondary = null;
+      applyTheme();
+      saveSettings();
+      renderThemeSwatches();
+      colorPrimary.value   = theme.accent;
+      colorSecondary.value = theme.bg;
+    });
+    themeGrid.appendChild(btn);
+  });
+}
+
+function openSettings() {
+  colorPrimary.value   = customPrimary   || currentTheme.accent;
+  colorSecondary.value = customSecondary || currentTheme.bg;
+  renderThemeSwatches();
+  settingsPanel.classList.remove('hidden');
+}
+
+function closeSettings() {
+  settingsPanel.classList.add('hidden');
 }
 
 // ── Helpers ──
@@ -332,6 +416,21 @@ backBtn.addEventListener('click', () => {
 newNoteBtn.addEventListener('click', createNote);
 newNoteFab.addEventListener('click', createNote);
 deleteBtn.addEventListener('click', deleteNote);
+
+settingsBtn.addEventListener('click', openSettings);
+settingsCloseBtn.addEventListener('click', closeSettings);
+settingsPanel.addEventListener('click', e => { if (e.target === settingsPanel) closeSettings(); });
+
+colorPrimary.addEventListener('input', () => {
+  customPrimary = colorPrimary.value;
+  document.documentElement.style.setProperty('--accent', customPrimary);
+  saveSettings();
+});
+colorSecondary.addEventListener('input', () => {
+  customSecondary = colorSecondary.value;
+  document.documentElement.style.setProperty('--bg', customSecondary);
+  saveSettings();
+});
 noteTitle.addEventListener('input', scheduleAutosave);
 noteBody.addEventListener('input', scheduleAutosave);
 searchInput.addEventListener('input', renderList);
@@ -351,6 +450,8 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Init ──
+loadSettings();
+applyTheme();
 load();
 if (notes.length) {
   welcomeEl.classList.add('hidden');
