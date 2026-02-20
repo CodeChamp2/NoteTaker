@@ -549,6 +549,40 @@ searchInput.addEventListener('input', renderList);
 
 // Close revealed actions on list scroll or tap outside
 noteList.addEventListener('scroll', closeRevealedActions, { passive: true });
+
+// Stars parallax — drift at 20% of scroll speed
+noteList.addEventListener('scroll', () => {
+  if (!starsEnabled || !gradientEnabled || !isDarkTheme()) return;
+  starsCanvas.style.transform = `translateY(${-noteList.scrollTop * 0.2}px)`;
+}, { passive: true });
+
+// Pull-to-refresh spring effect on stars
+let pullStartY = 0;
+let pullTracking = false;
+
+noteList.addEventListener('touchstart', e => {
+  pullTracking = noteList.scrollTop <= 0;
+  pullStartY = e.touches[0].clientY;
+}, { passive: true });
+
+noteList.addEventListener('touchmove', e => {
+  if (!pullTracking || !starsEnabled || !gradientEnabled || !isDarkTheme()) return;
+  const dy = e.touches[0].clientY - pullStartY;
+  if (dy > 0) {
+    starsCanvas.style.transition = 'none';
+    starsCanvas.style.transform = `translateY(${Math.min(dy * 0.35, 45)}px)`;
+  }
+}, { passive: true });
+
+function onPullEnd() {
+  if (!pullTracking) return;
+  pullTracking = false;
+  starsCanvas.style.transition = 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+  starsCanvas.style.transform = 'translateY(0)';
+  setTimeout(() => { starsCanvas.style.transition = ''; }, 600);
+}
+noteList.addEventListener('touchend', onPullEnd, { passive: true });
+noteList.addEventListener('touchcancel', onPullEnd, { passive: true });
 document.addEventListener('touchstart', e => {
   if (revealedItem && !e.target.closest('#note-list')) closeRevealedActions();
 }, { passive: true });
